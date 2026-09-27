@@ -47,25 +47,30 @@ public sealed class ConfigWindow : Window
         ImGui.TextDisabled("Off means it is never read from the game, let alone sent.");
         ImGui.Spacing();
 
-        dirty |= Toggle("Online status & playtime", () => config.SharePlaytime, v => config.SharePlaytime = v,
+        var privacy = false;
+
+        privacy |= Toggle("Online status & playtime", () => config.SharePlaytime, v => config.SharePlaytime = v,
             "Whether you're logged in, session length, hours per week.");
-        dirty |= Toggle("Zone, duty & pulls", () => config.ShareZone, v => config.ShareZone = v,
+        privacy |= Toggle("Zone, duty & pulls", () => config.ShareZone, v => config.ShareZone = v,
             "Where you are, what duty, in combat, pull count.");
-        dirty |= Toggle("Deaths & wipes", () => config.ShareDeaths, v => config.ShareDeaths = v,
+        privacy |= Toggle("Deaths & wipes", () => config.ShareDeaths, v => config.ShareDeaths = v,
             "Every death, how long you stayed on the floor, every wipe.");
-        dirty |= Toggle("Job, level & item level", () => config.ShareGear, v => config.ShareGear = v, null);
-        dirty |= Toggle("PvP record", () => config.SharePvp, v => config.SharePvp = v,
+        privacy |= Toggle("Job, level & item level", () => config.ShareGear, v => config.ShareGear = v, null);
+        privacy |= Toggle("PvP record", () => config.SharePvp, v => config.SharePvp = v,
             "Frontline placements, Crystalline Conflict rank, series level.");
-        dirty |= Toggle("Emote counts", () => config.ShareEmotes, v => config.ShareEmotes = v,
+        privacy |= Toggle("Emote counts", () => config.ShareEmotes, v => config.ShareEmotes = v,
             "How many times you've used each emote. Only the totals, never who you did it at.");
+
+        // Don't make him wait for the next heartbeat for the site to drop something he just turned off.
+        if (privacy)
+        {
+            dirty = true;
+            sendNow();
+        }
 
         ImGui.Spacing();
         ImGui.Separator();
-        var hb = config.HeartbeatSeconds;
-        if (ImGui.SliderInt("Heartbeat (s)", ref hb, 10, 120)) config.HeartbeatSeconds = hb;
-        // The slider reports a change every frame while dragged; write the file once, on release.
-        if (ImGui.IsItemDeactivatedAfterEdit()) dirty = true;
-
+        ImGui.TextDisabled($"Sends an update every {Plugin.HeartbeatSeconds}s.");
         if (ImGui.Button("Send now")) sendNow();
 
         if (dirty) config.Save();

@@ -65,7 +65,7 @@ public sealed unsafe class EmoteTracker : IDisposable
     /// Called every framework tick.
     public void Tick()
     {
-        if (DateTime.UtcNow - lastFlush >= TimeSpan.FromSeconds(config.HeartbeatSeconds)) Flush();
+        if (DateTime.UtcNow - lastFlush >= TimeSpan.FromSeconds(Plugin.HeartbeatSeconds)) Flush();
     }
 
     public void Flush()

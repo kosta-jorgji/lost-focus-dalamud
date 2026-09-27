@@ -20,7 +20,5 @@ public class Configuration : IPluginConfiguration
     public bool SharePvp { get; set; } = true;
     public bool ShareEmotes { get; set; } = true;
 
-    public int HeartbeatSeconds { get; set; } = 30;
-
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 }

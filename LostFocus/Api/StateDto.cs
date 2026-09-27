@@ -48,10 +48,6 @@ public sealed class SnapshotDto
     [JsonPropertyName("pullNumber")] public int PullNumber { get; set; }
     [JsonPropertyName("privacy")] public PrivacyDto Privacy { get; set; } = new();
     [JsonPropertyName("pvp")] public PvpProfileDto? Pvp { get; set; }
-
-    /// Used to decide whether anything changed since the last heartbeat.
-    public string Fingerprint() =>
-        $"{Online}|{Job}|{Level}|{ItemLevel}|{Zone}|{Duty}|{InCombat}|{PullNumber}|{Privacy.Playtime}{Privacy.Zone}{Privacy.Deaths}{Privacy.Gear}{Privacy.Pvp}{Privacy.Emotes}|{Pvp?.FrontlineTotalMatches}|{Pvp?.CcCasualMatches}|{Pvp?.CcRankedMatches}";
 }
 
 public sealed class EventDto

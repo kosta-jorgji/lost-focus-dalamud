@@ -25,6 +25,10 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string Command = "/lostfocus";
 
+    /// How often the game state is read and sent (and emote counts flushed). Fixed and slow on
+    /// purpose: reading gear / PvP / sheets is the only non-trivial work this plugin does per tick.
+    public const int HeartbeatSeconds = 60;
+
     private readonly Configuration config;
     private readonly ApiClient api;
     private readonly GameStateReader reader;
@@ -34,9 +38,6 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ConfigWindow configWindow;
 
     private DateTime lastHeartbeat = DateTime.MinValue;
-    private DateTime lastChangeSend = DateTime.MinValue;
-    private DateTime lastCheck = DateTime.MinValue;
-    private string lastFingerprint = "";
 
     public Plugin()
     {
@@ -74,26 +75,14 @@ public sealed class Plugin : IDalamudPlugin
     private void SendHeartbeat(bool force)
     {
         var now = DateTime.UtcNow;
-        var due = now - lastHeartbeat >= TimeSpan.FromSeconds(config.HeartbeatSeconds);
-        // Reading the game state isn't free (gear, PvP profile, sheet lookups), so look for changes
-        // at most once a second, and send at most one change per 2s (job swaps, combat flicker).
-        var mayCheckChange = now - lastCheck >= TimeSpan.FromSeconds(1) && now - lastChangeSend >= TimeSpan.FromSeconds(2);
-        if (!force && !due && !mayCheckChange) return;
-        lastCheck = now;
+        if (!force && now - lastHeartbeat < TimeSpan.FromSeconds(HeartbeatSeconds)) return;
 
         // Loading screen: still logged in but there's no player object, so every field would read
         // as empty and the site would flash offline. Keep the last snapshot until he's back.
         if (ClientState.IsLoggedIn && Objects.LocalPlayer == null) return;
 
-        var snap = reader.Read(events.PullNumber);
-        var fp = snap.Fingerprint();
-        var changed = fp != lastFingerprint;
-        if (!force && !due && !changed) return;
-
-        api.SendHeartbeat(snap);
-        lastFingerprint = fp;
+        api.SendHeartbeat(reader.Read(events.PullNumber));
         lastHeartbeat = now;
-        if (changed) lastChangeSend = now;
     }
 
     private void OnLogout(int type, int code)
@@ -102,7 +91,8 @@ public sealed class Plugin : IDalamudPlugin
         if (!api.IsConfigured) return;
         emotes.Flush();
         api.SendHeartbeat(new SnapshotDto { Online = false, Privacy = reader.Privacy() });
-        lastFingerprint = "";
+        // Send a full snapshot as soon as the next character is in, not up to a minute later.
+        lastHeartbeat = DateTime.MinValue;
     }
 
     public void Dispose()

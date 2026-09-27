@@ -4,7 +4,7 @@
 
 ## What it sends
 
-| Toggle | Heartbeat fields (every ~30s and on change) | Events |
+| Toggle | Heartbeat fields (every 60s) | Events |
 |---|---|---|
 | Online status & playtime | `online` | `login`, `logout` |
 | Zone, duty & pulls | `zone`, `duty`, `inCombat`, `pullNumber` | `pull`, `duty_complete` |
