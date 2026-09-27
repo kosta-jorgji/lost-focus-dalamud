@@ -1,0 +1,68 @@
+# Builds the Dalamud plugin. On a `v*` tag it also publishes a GitHub
+# Release with LostFocus.zip and rewrites repo/pluginmaster.json to
+# point at it, so Dalamud's custom-repo URL always serves the latest build.
+name: plugin
+
+on:
+  push:
+    branches: [main]
+    paths: ["LostFocus/**", ".github/workflows/plugin.yml"]
+    tags: ["v*"]
+  pull_request:
+    paths: ["LostFocus/**"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Download Dalamud
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile dalamud.zip
+          Expand-Archive dalamud.zip -DestinationPath "$env:RUNNER_TEMP/dalamud"
+          "DALAMUD_HOME=$env:RUNNER_TEMP/dalamud" >> $env:GITHUB_ENV
+
+      - name: Build
+        run: dotnet build LostFocus/LostFocus.csproj -c Release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LostFocus
+          path: LostFocus/bin/Release/LostFocus/latest.zip
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = (Get-Content LostFocus/bin/Release/LostFocus/LostFocus.json | ConvertFrom-Json).AssemblyVersion
+          Copy-Item LostFocus/bin/Release/LostFocus/latest.zip LostFocus.zip
+          gh release create $tag LostFocus.zip --title "Plugin $tag" --notes "Dalamud plugin build $version"
+
+          # point the custom-repo manifest at this release
+          $url = "https://github.com/${{ github.repository }}/releases/download/$tag/LostFocus.zip"
+          $pm = Get-Content repo/pluginmaster.json | ConvertFrom-Json
+          $pm[0].AssemblyVersion = $version
+          $pm[0].LastUpdate = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+          $pm[0].DownloadLinkInstall = $url
+          $pm[0].DownloadLinkUpdate = $url
+          $pm[0].DownloadLinkTesting = $url
+          $pm | ConvertTo-Json -Depth 5 -AsArray | Set-Content repo/pluginmaster.json -Encoding utf8
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git add repo/pluginmaster.json
+          git commit -m "plugin: point repo manifest at $tag"
+          git push origin main

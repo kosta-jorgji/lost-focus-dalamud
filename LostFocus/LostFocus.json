@@ -1,0 +1,11 @@
+{
+  "Name": "Lost Focus Tracker",
+  "Author": "kosta",
+  "Punchline": "Reports your in-game activity to the Lost Focus website.",
+  "Description": "Sends online status, playtime, zone/duty, deaths, floor time, wipes, job/gear, PvP record and emote counts to the Lost Focus meme site. Every category can be turned off in /lostfocus.",
+  "InternalName": "LostFocus",
+  "RepoUrl": "https://github.com/kosta-jorgji/lost-focus-dalamud",
+  "ApplicableVersion": "any",
+  "Tags": ["meme", "tracker"],
+  "IconUrl": "https://raw.githubusercontent.com/kosta-jorgji/lost-focus-dalamud/main/repo/icon.png"
+}
