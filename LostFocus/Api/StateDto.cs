@@ -12,6 +12,24 @@ public sealed class PrivacyDto
     [JsonPropertyName("gear")] public bool Gear { get; set; }
     [JsonPropertyName("pvp")] public bool Pvp { get; set; }
     [JsonPropertyName("emotes")] public bool Emotes { get; set; }
+    [JsonPropertyName("location")] public bool Location { get; set; }
+}
+
+/// Where he is on the zone map. Sent on its own interval, only when the shown coordinates change.
+public sealed class LocationDto
+{
+    [JsonPropertyName("zone")] public string Zone { get; set; } = "";
+    [JsonPropertyName("subArea")] public string? SubArea { get; set; }
+    /// In a housing district: "Ward 12 · Plot 34 · inside", "Ward 5 (subdivision) · Apartment 17".
+    [JsonPropertyName("housing")] public string? Housing { get; set; }
+    /// Map texture path, e.g. "s1t2/01"; the site loads the map image from it.
+    [JsonPropertyName("mapPath")] public string? MapPath { get; set; }
+    /// In-game map coordinates, as shown on the map (X 11.0, Y 11.4).
+    [JsonPropertyName("x")] public double? X { get; set; }
+    [JsonPropertyName("y")] public double? Y { get; set; }
+    /// Position across the 2048px map image, 0..1.
+    [JsonPropertyName("fx")] public double? Fx { get; set; }
+    [JsonPropertyName("fy")] public double? Fy { get; set; }
 }
 
 public sealed class PvpProfileDto

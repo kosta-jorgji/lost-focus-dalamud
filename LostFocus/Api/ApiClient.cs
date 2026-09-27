@@ -42,17 +42,41 @@ public sealed class ApiClient : IDisposable
     public void SendHeartbeat(SnapshotDto snapshot) => Enqueue("/plugin/heartbeat", snapshot);
     public void SendEvent(EventDto ev) => Enqueue("/plugin/event", ev);
 
-    private void Enqueue(string path, object body)
+    // Location can update every second. Only the newest one matters, so there's a single slot:
+    // at most one location request is ever queued and it sends whatever is latest when its turn comes.
+    private const string LocationPath = "/plugin/location";
+    private static readonly object LocationMarker = new();
+    private LocationDto? latestLocation;
+    private int locationQueued;
+
+    public void SendLocation(LocationDto location)
     {
-        if (!IsConfigured) return;
-        if (!queue.TryAdd((path, body)))
-            log.Warning("[api] queue full, dropping {Path}", path);
+        Volatile.Write(ref latestLocation, location);
+        if (Interlocked.Exchange(ref locationQueued, 1) == 1) return; // one is already waiting
+        if (!Enqueue(LocationPath, LocationMarker)) Volatile.Write(ref locationQueued, 0);
+    }
+
+    private bool Enqueue(string path, object body)
+    {
+        if (!IsConfigured) return false;
+        if (queue.TryAdd((path, body))) return true;
+        log.Warning("[api] queue full, dropping {Path}", path);
+        return false;
     }
 
     private async Task Loop()
     {
-        foreach (var (path, body) in queue.GetConsumingEnumerable(cts.Token))
+        foreach (var (path, queued) in queue.GetConsumingEnumerable(cts.Token))
         {
+            var body = queued;
+            if (ReferenceEquals(body, LocationMarker))
+            {
+                Volatile.Write(ref locationQueued, 0);
+                var latest = Interlocked.Exchange(ref latestLocation, null);
+                if (latest == null) continue;
+                body = latest;
+            }
+
             try
             {
                 var url = config.ServerUrl.TrimEnd('/') + path;

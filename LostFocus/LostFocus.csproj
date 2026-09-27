@@ -1,6 +1,6 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
   <PropertyGroup>
-    <Version>0.2.2.0</Version>
+    <Version>0.3.0.0</Version>
     <Description>Tells a website what Lost Focus is doing in-game. He agreed to this.</Description>
     <PackageProjectUrl>https://github.com/kosta-jorgji/lost-focus-dalamud</PackageProjectUrl>
     <Nullable>enable</Nullable>

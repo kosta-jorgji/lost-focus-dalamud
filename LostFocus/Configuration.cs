@@ -19,6 +19,9 @@ public class Configuration : IPluginConfiguration
     public bool ShareGear { get; set; } = true;
     public bool SharePvp { get; set; } = true;
     public bool ShareEmotes { get; set; } = true;
+    // Off by default: this lets anyone on the site find him in-game.
+    public bool ShareLocation { get; set; } = false;
+    public int LocationSeconds { get; set; } = 5;
 
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 }

@@ -34,6 +34,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly GameStateReader reader;
     private readonly EventTracker events;
     private readonly EmoteTracker emotes;
+    private readonly LocationTracker location;
     private readonly WindowSystem windows = new("LostFocus");
     private readonly ConfigWindow configWindow;
 
@@ -46,8 +47,9 @@ public sealed class Plugin : IDalamudPlugin
         reader = new GameStateReader(ClientState, Objects, Condition, DataManager, config);
         events = new EventTracker(ClientState, Objects, DutyState, Log, config, reader, api);
         emotes = new EmoteTracker(Interop, Log, config, reader, api);
+        location = new LocationTracker(ClientState, Objects, DataManager, config, api);
 
-        configWindow = new ConfigWindow(config, api, () => SendHeartbeat(force: true), GoOffline);
+        configWindow = new ConfigWindow(config, api, SendNow, GoOffline);
         windows.AddWindow(configWindow);
         PluginInterface.UiBuilder.Draw += windows.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfig;
@@ -69,7 +71,15 @@ public sealed class Plugin : IDalamudPlugin
         if (!api.IsConfigured) return;
         events.Tick();
         emotes.Tick();
+        location.Tick();
         SendHeartbeat(force: false);
+    }
+
+    /// "Send now" / a privacy toggle changed: full snapshot, and the location again if it's on.
+    private void SendNow()
+    {
+        location.Reset();
+        SendHeartbeat(force: true);
     }
 
     private void SendHeartbeat(bool force)
@@ -95,8 +105,9 @@ public sealed class Plugin : IDalamudPlugin
         if (!api.IsConfigured) return;
         emotes.Flush();
         api.SendHeartbeat(new SnapshotDto { Online = false, Privacy = reader.Privacy() });
-        // Send a full snapshot as soon as he's back, not up to a minute later.
+        // Send a full snapshot (and location) as soon as he's back, not up to a heartbeat later.
         lastHeartbeat = DateTime.MinValue;
+        location.Reset();
     }
 
     public void Dispose()

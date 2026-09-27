@@ -69,6 +69,18 @@ public sealed class ConfigWindow : Window
             "Frontline placements, Crystalline Conflict rank, series level.");
         privacy |= Toggle("Emote counts", () => config.ShareEmotes, v => config.ShareEmotes = v,
             "How many times you've used each emote. Only the totals, never who you did it at.");
+        privacy |= Toggle("Exact location (live map)", () => config.ShareLocation, v => config.ShareLocation = v,
+            "Your position on the zone map, updated live, including housing ward / plot / apartment. Anyone on the site can find you in-game with this.");
+        if (config.ShareLocation)
+        {
+            ImGui.Indent();
+            var secs = config.LocationSeconds;
+            if (ImGui.SliderInt("Location every (s)", ref secs, 1, 60)) config.LocationSeconds = secs;
+            // The slider reports a change every frame while dragged; write the file once, on release.
+            if (ImGui.IsItemDeactivatedAfterEdit()) dirty = true;
+            if (ImGui.IsItemHovered()) ImGui.SetTooltip("How often your position is checked. It's only sent when it changed.");
+            ImGui.Unindent();
+        }
 
         // Don't make him wait for the next heartbeat for the site to drop something he just turned off.
         if (privacy)

@@ -34,6 +34,7 @@ public sealed class GameStateReader
         Gear = config.ShareGear,
         Pvp = config.SharePvp,
         Emotes = config.ShareEmotes,
+        Location = config.ShareLocation,
     };
 
     public SnapshotDto Read(int pullNumber)
