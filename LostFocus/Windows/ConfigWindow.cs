@@ -11,13 +11,15 @@ public sealed class ConfigWindow : Window
     private readonly Configuration config;
     private readonly ApiClient api;
     private readonly Action sendNow;
+    private readonly Action goOffline;
 
-    public ConfigWindow(Configuration config, ApiClient api, Action sendNow)
+    public ConfigWindow(Configuration config, ApiClient api, Action sendNow, Action goOffline)
         : base("Lost Focus Tracker###LostFocusConfig")
     {
         this.config = config;
         this.api = api;
         this.sendNow = sendNow;
+        this.goOffline = goOffline;
         Size = new Vector2(420, 400);
         SizeCondition = ImGuiCond.FirstUseEver;
     }
@@ -27,7 +29,14 @@ public sealed class ConfigWindow : Window
         var dirty = false;
 
         var enabled = config.Enabled;
-        if (ImGui.Checkbox("Enabled", ref enabled)) { config.Enabled = enabled; dirty = true; }
+        if (ImGui.Checkbox("Enabled", ref enabled))
+        {
+            // Switching off: tell the site while still allowed to send. Switching on: don't wait a minute.
+            if (!enabled) goOffline();
+            config.Enabled = enabled;
+            if (enabled) sendNow();
+            dirty = true;
+        }
         ImGui.SameLine();
         ImGui.TextDisabled(api.IsConfigured
             ? api.LastError != null ? $"last error: {api.LastError}"
