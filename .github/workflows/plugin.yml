@@ -50,6 +50,10 @@ jobs:
           Copy-Item LostFocus/bin/Release/LostFocus/latest.zip LostFocus.zip
           gh release create $tag LostFocus.zip --title "Plugin $tag" --notes "Dalamud plugin build $version"
 
+          # A tag build only checks out the tag; get main so the manifest update can be pushed to it.
+          git fetch origin main
+          git checkout -B main origin/main
+
           # point the custom-repo manifest at this release
           $url = "https://github.com/${{ github.repository }}/releases/download/$tag/LostFocus.zip"
           $pm = Get-Content repo/pluginmaster.json | ConvertFrom-Json
@@ -62,7 +66,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
           git add repo/pluginmaster.json
           git commit -m "plugin: point repo manifest at $tag"
           git push origin main
