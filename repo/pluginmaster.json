@@ -10,10 +10,13 @@
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/kosta-jorgji/lost-focus-dalamud",
     "IconUrl": "https://raw.githubusercontent.com/kosta-jorgji/lost-focus-dalamud/main/repo/icon.png",
-    "Tags": ["meme", "tracker"],
+    "Tags": [
+      "meme",
+      "tracker"
+    ],
     "IsHide": false,
     "IsTestingExclusive": false,
-    "LastUpdate": 0,
+    "LastUpdate": 1790544492,
     "DownloadCount": 0,
     "DownloadLinkInstall": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.2.0/LostFocus.zip",
     "DownloadLinkUpdate": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.2.0/LostFocus.zip",
