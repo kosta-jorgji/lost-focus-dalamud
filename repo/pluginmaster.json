@@ -5,7 +5,7 @@
     "InternalName": "LostFocus",
     "Punchline": "Reports your in-game activity to the Lost Focus website.",
     "Description": "Sends online status, playtime, zone/duty, deaths, floor time, wipes, job/gear, PvP record and emote counts to the Lost Focus meme site. Every category can be turned off in /lostfocus.",
-    "AssemblyVersion": "0.4.0.0",
+    "AssemblyVersion": "0.4.1.0",
     "DalamudApiLevel": 15,
     "ApplicableVersion": "any",
     "RepoUrl": "https://github.com/kosta-jorgji/lost-focus-dalamud",
@@ -16,10 +16,10 @@
     ],
     "IsHide": false,
     "IsTestingExclusive": false,
-    "LastUpdate": 1791659461,
+    "LastUpdate": 1791659980,
     "DownloadCount": 0,
-    "DownloadLinkInstall": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.0/LostFocus.zip",
-    "DownloadLinkUpdate": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.0/LostFocus.zip",
-    "DownloadLinkTesting": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.0/LostFocus.zip"
+    "DownloadLinkInstall": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.1/LostFocus.zip",
+    "DownloadLinkUpdate": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.1/LostFocus.zip",
+    "DownloadLinkTesting": "https://github.com/kosta-jorgji/lost-focus-dalamud/releases/download/v0.4.1/LostFocus.zip"
   }
 ]
