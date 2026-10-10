@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Dalamud.Game.Chat;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -74,17 +75,24 @@ public sealed unsafe class PlaytimeTracker : IDisposable
         readySince ??= now;
         if (now - readySince < AskAfter) return;
 
+        // A null UI module would be an access violation, which no catch can stop; skip until it exists.
+        var ui = UIModule.Instance();
+        if (ui == null) return;
+
         asked = true;
         askedAt = now;
+        var command = Utf8String.FromString("/playtime");
         try
         {
-            var command = Utf8String.FromString("/playtime");
-            UIModule.Instance()->ProcessChatBoxEntry(command);
-            command->Dtor(true);
+            ui->ProcessChatBoxEntry(command);
         }
         catch (Exception ex)
         {
             log.Warning(ex, "[playtime] failed to ask for /playtime");
+        }
+        finally
+        {
+            command->Dtor(true); // native string; frees it and itself
         }
     }
 
@@ -99,6 +107,8 @@ public sealed unsafe class PlaytimeTracker : IDisposable
 
     private void OnChatMessage(IHandleableChatMessage message)
     {
+        // Every chat line comes through here; only system lines can be it, so don't decode the rest.
+        if (message.LogKind != XivChatType.SystemMessage) return;
         if (DateTime.UtcNow - lastReading < TimeSpan.FromSeconds(5)) return; // the log message already had it
         var match = PlaytimeLine.Match(message.Message.TextValue);
         if (!match.Success) return;
