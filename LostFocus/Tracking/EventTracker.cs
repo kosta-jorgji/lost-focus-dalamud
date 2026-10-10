@@ -77,7 +77,12 @@ public sealed class EventTracker : IDisposable
     private void OnDeath()
     {
         if (!config.ShareDeaths) return;
-        Emit("death", new() { ["zone"] = config.ShareZone ? reader.ZoneName(clientState.TerritoryType) : null });
+        var territory = clientState.TerritoryType;
+        Emit("death", new()
+        {
+            ["zone"] = config.ShareZone ? reader.ZoneName(territory) : null,
+            ["duty"] = config.ShareZone ? reader.DutyName(territory) : null,
+        });
     }
 
     private void OnLogin()

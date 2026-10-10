@@ -21,6 +21,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] private static IFramework Framework { get; set; } = null!;
     [PluginService] private static ICommandManager Commands { get; set; } = null!;
     [PluginService] private static IGameInteropProvider Interop { get; set; } = null!;
+    [PluginService] private static IChatGui Chat { get; set; } = null!;
     [PluginService] private static IPluginLog Log { get; set; } = null!;
 
     private const string Command = "/lostfocus";
@@ -35,6 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly EventTracker events;
     private readonly EmoteTracker emotes;
     private readonly LocationTracker location;
+    private readonly PlaytimeTracker playtime;
     private readonly WindowSystem windows = new("LostFocus");
     private readonly ConfigWindow configWindow;
 
@@ -48,6 +50,7 @@ public sealed class Plugin : IDalamudPlugin
         events = new EventTracker(ClientState, Objects, DutyState, Log, config, reader, api);
         emotes = new EmoteTracker(Interop, Log, config, reader, api);
         location = new LocationTracker(ClientState, Objects, DataManager, config, api);
+        playtime = new PlaytimeTracker(ClientState, Objects, Condition, Chat, Log, config, api);
 
         configWindow = new ConfigWindow(config, api, SendNow, GoOffline);
         windows.AddWindow(configWindow);
@@ -72,6 +75,7 @@ public sealed class Plugin : IDalamudPlugin
         events.Tick();
         emotes.Tick();
         location.Tick();
+        playtime.Tick();
         SendHeartbeat(force: false);
     }
 
@@ -120,6 +124,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenMainUi -= ToggleConfig;
         windows.RemoveAllWindows();
         GoOffline(); // plugin disabled/updated or game closing; ApiClient.Dispose gives it up to 2s to go out
+        playtime.Dispose();
         emotes.Dispose();
         events.Dispose();
         api.Dispose();

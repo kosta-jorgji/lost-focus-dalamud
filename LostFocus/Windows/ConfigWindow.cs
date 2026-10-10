@@ -59,7 +59,7 @@ public sealed class ConfigWindow : Window
         var privacy = false;
 
         privacy |= Toggle("Online status & playtime", () => config.SharePlaytime, v => config.SharePlaytime = v,
-            "Whether you're logged in, session length, hours per week.");
+            "Whether you're logged in, session length, hours per week, and your /playtime total (asked quietly once per login).");
         privacy |= Toggle("Zone, duty & pulls", () => config.ShareZone, v => config.ShareZone = v,
             "Where you are, what duty, in combat, pull count.");
         privacy |= Toggle("Deaths & wipes", () => config.ShareDeaths, v => config.ShareDeaths = v,

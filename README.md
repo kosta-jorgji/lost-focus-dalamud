@@ -6,9 +6,9 @@
 
 | Toggle | Heartbeat fields (every 30s while logged in) | Events |
 |---|---|---|
-| Online status & playtime | `online` | `login`, `logout` |
+| Online status & playtime | `online` | `login`, `logout`, `playtime` (the game's `/playtime` total in minutes; asked once per login with the reply hidden from chat, and read whenever he types it) |
 | Zone, duty & pulls | `zone`, `duty`, `inCombat`, `pullNumber` | `pull`, `duty_complete` |
-| Deaths & wipes | – | `death`, `revive` (seconds spent dead), `wipe` |
+| Deaths & wipes | – | `death` (with zone / duty when zone sharing is on), `revive` (seconds spent dead), `wipe` |
 | Job, level & item level | `job`, `level`, `itemLevel` | – |
 | PvP record | `pvp` (Frontline placements, CC rank, series level) | `pvp_match` (placement / win, derived by diffing the PvP profile on leaving a PvP zone) |
 | Emote counts | – | `emotes` (uses per emote, batched once per heartbeat; the backend only keeps totals) |
