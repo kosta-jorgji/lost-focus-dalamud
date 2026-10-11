@@ -12,8 +12,8 @@
 | Job, level & item level | `job`, `level`, `itemLevel` | – |
 | PvP record | `pvp` (Frontline placements, CC rank, series level) | `pvp_match` (placement / win, derived by diffing the PvP profile on leaving a PvP zone) |
 | Emote counts | – | `emotes` (uses per emote, batched once per heartbeat; the backend only keeps totals) |
-| Time per job (**off by default**) | `jobActivity`: cumulative seconds per job, longest streak, and the current streak | None; cumulative readings are safe to resend |
-| Time per mount (**off by default**) | `mountActivity`: cumulative seconds per mount ID, ride count, longest ride, and the current ride | None; each ride appends to that mount's total |
+| Time per job | `jobActivity`: cumulative seconds per job, longest streak, and the current streak | None; cumulative readings are safe to resend |
+| Time per mount | `mountActivity`: cumulative seconds per mount ID, ride count, longest ride, and the current ride | None; each ride appends to that mount's total |
 | Exact location (**off by default**) | – | `POST /plugin/location` on its own 1–60s interval, only when the map coordinates change: zone, sub-area, map path, in-game X/Y, and in housing districts the ward / plot / apartment. |
 
 ## Install (for him)
