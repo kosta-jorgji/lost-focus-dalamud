@@ -12,9 +12,13 @@
 | Job, level & item level | `job`, `level`, `itemLevel` | – |
 | PvP record | `pvp` (Frontline placements, CC rank, series level) | `pvp_match` (placement / win, derived by diffing the PvP profile on leaving a PvP zone) |
 | Emote counts | – | `emotes` (uses per emote, batched once per heartbeat; the backend only keeps totals) |
+| Time per job (**off by default**) | `jobActivity`: cumulative seconds per job, longest streak, and the current streak | None; cumulative readings are safe to resend |
+| Time per mount (**off by default**) | `mountActivity`: cumulative seconds per mount ID, ride count, longest ride, and the current ride | None; each ride appends to that mount's total |
 | Exact location (**off by default**) | – | `POST /plugin/location` on its own 1–60s interval, only when the map coordinates change: zone, sub-area, map path, in-game X/Y, and in housing districts the ward / plot / apartment. |
 
 ## Install (for him)
+
+Job and mount timers start when their sharing toggles are enabled. Totals are saved in the plugin config and mirrored by the backend, so they survive restarts and missed heartbeats. Loading screens pause time without counting another ride; logout stops the current timers. Standing around on a job or mount still counts. Ride counts represent rides observed while tracking is enabled; reloading the plugin while mounted starts another observed ride.
 
 1. Dalamud settings → Experimental → Custom Plugin Repositories → add
    `https://raw.githubusercontent.com/kosta-jorgji/lost-focus-dalamud/main/repo/pluginmaster.json`
@@ -32,6 +36,12 @@ dotnet build LostFocus/LostFocus.csproj -c Release
 Output: `LostFocus/bin/Release/LostFocus/latest.zip`. For local testing without the repo, add `LostFocus/bin/Release/LostFocus.dll` as a dev plugin in Dalamud settings.
 
 ## Release
+
+Timer regression checks (no game/Dalamud process required):
+
+```
+dotnet run --project tests/ActivityTimers/ActivityTimers.Tests.csproj
+```
 
 Tag `vX.Y.Z` (bump `<Version>` in the csproj first). CI builds, creates a GitHub Release with `LostFocus.zip`, and rewrites `repo/pluginmaster.json` to point at it. The repo has to stay public for the download link to work without auth.
 

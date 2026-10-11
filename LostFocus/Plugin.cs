@@ -37,10 +37,12 @@ public sealed class Plugin : IDalamudPlugin
     private readonly EmoteTracker emotes;
     private readonly LocationTracker location;
     private readonly PlaytimeTracker playtime;
+    private readonly ActivityTracker activity;
     private readonly WindowSystem windows = new("LostFocus");
     private readonly ConfigWindow configWindow;
 
     private DateTime lastHeartbeat = DateTime.MinValue;
+    private SnapshotDto? lastSnapshot;
 
     public Plugin()
     {
@@ -51,6 +53,7 @@ public sealed class Plugin : IDalamudPlugin
         emotes = new EmoteTracker(Interop, Log, config, reader, api);
         location = new LocationTracker(ClientState, Objects, DataManager, config, api);
         playtime = new PlaytimeTracker(ClientState, Objects, Condition, Chat, Log, config, api);
+        activity = new ActivityTracker(config, ClientState, Objects, Condition);
 
         configWindow = new ConfigWindow(config, api, SendNow, GoOffline);
         windows.AddWindow(configWindow);
@@ -71,18 +74,20 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnUpdate(IFramework _)
     {
-        if (!api.IsConfigured) return;
+        if (!api.IsConfigured) { activity.Stop(); return; }
         events.Tick();
         emotes.Tick();
         location.Tick();
         playtime.Tick();
-        SendHeartbeat(force: false);
+        var activityChanged = activity.Tick();
+        SendHeartbeat(force: activityChanged);
     }
 
     /// "Send now" / a privacy toggle changed: full snapshot, and the location again if it's on.
     private void SendNow()
     {
         location.Reset();
+        activity.Tick();
         SendHeartbeat(force: true);
     }
 
@@ -94,9 +99,35 @@ public sealed class Plugin : IDalamudPlugin
         // Only while he's actually in the game. Title screen / character select: logout already told
         // the site he's offline. Loading screen: there's no player object, so every field would read
         // as empty and the site would flash offline; keep the last snapshot until he's back.
-        if (!ClientState.IsLoggedIn || Objects.LocalPlayer == null) return;
+        if (!ClientState.IsLoggedIn) return;
+        if (Objects.LocalPlayer == null)
+        {
+            // Keep the normal game state through loading, but tell activity timers to pause.
+            if (force && lastSnapshot != null)
+            {
+                var loading = new SnapshotDto
+                {
+                    Online = true, CharacterName = lastSnapshot.CharacterName, Privacy = reader.Privacy(),
+                    Job = config.ShareGear ? lastSnapshot.Job : "",
+                    Level = config.ShareGear ? lastSnapshot.Level : 0,
+                    ItemLevel = config.ShareGear ? lastSnapshot.ItemLevel : 0,
+                    Zone = config.ShareZone ? lastSnapshot.Zone : "",
+                    Duty = config.ShareZone ? lastSnapshot.Duty : null,
+                    InCombat = config.ShareZone && lastSnapshot.InCombat,
+                    PullNumber = config.ShareZone ? lastSnapshot.PullNumber : 0,
+                    Pvp = config.SharePvp ? lastSnapshot.Pvp : null,
+                };
+                activity.Fill(loading);
+                api.SendHeartbeat(loading);
+                lastHeartbeat = now;
+            }
+            return;
+        }
 
-        api.SendHeartbeat(reader.Read(events.PullNumber));
+        var snapshot = reader.Read(events.PullNumber);
+        activity.Fill(snapshot);
+        api.SendHeartbeat(snapshot);
+        lastSnapshot = snapshot;
         lastHeartbeat = now;
     }
 
@@ -106,12 +137,17 @@ public sealed class Plugin : IDalamudPlugin
     /// backend's stale timeout (~2.5 min). Used on logout, when tracking is switched off, and on unload.
     private void GoOffline()
     {
-        if (!api.IsConfigured) return;
+        if (!api.IsConfigured) { activity.Stop(); return; }
+        activity.Tick();
+        activity.Stop();
         emotes.Flush();
-        api.SendHeartbeat(new SnapshotDto { Online = false, Privacy = reader.Privacy() });
+        var snapshot = new SnapshotDto { Online = false, Privacy = reader.Privacy() };
+        activity.Fill(snapshot);
+        api.SendHeartbeat(snapshot);
         // Send a full snapshot (and location) as soon as he's back, not up to a heartbeat later.
         lastHeartbeat = DateTime.MinValue;
         location.Reset();
+        lastSnapshot = null;
     }
 
     public void Dispose()

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Dalamud.Configuration;
+using LostFocus.Api;
 
 namespace LostFocus;
 
@@ -22,6 +24,12 @@ public class Configuration : IPluginConfiguration
     // Off by default: this lets anyone on the site find him in-game.
     public bool ShareLocation { get; set; } = false;
     public int LocationSeconds { get; set; } = 5;
+
+    public bool ShareJobTime { get; set; } = false;
+    public bool ShareMountTime { get; set; } = false;
+    // Cumulative readings survive reloads and can be resent safely after a missed heartbeat.
+    public Dictionary<string, JobTimeDto> JobTimes { get; set; } = new();
+    public Dictionary<uint, MountTimeDto> MountTimes { get; set; } = new();
 
     public void Save() => Plugin.PluginInterface.SavePluginConfig(this);
 }

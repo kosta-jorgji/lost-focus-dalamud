@@ -69,6 +69,10 @@ public sealed class ConfigWindow : Window
             "Frontline placements, Crystalline Conflict rank, series level.");
         privacy |= Toggle("Emote counts", () => config.ShareEmotes, v => config.ShareEmotes = v,
             "How many times you've used each emote. Only the totals, never who you did it at.");
+        privacy |= Toggle("Time per job", () => config.ShareJobTime, v => config.ShareJobTime = v,
+            "Cumulative time with each job selected, current streak, and longest streak. Standing around counts; loading and offline time do not.");
+        privacy |= Toggle("Time per mount", () => config.ShareMountTime, v => config.ShareMountTime = v,
+            "Cumulative time riding each mount, ride counts, current ride, and longest ride. Each ride adds to the same mount's total.");
         privacy |= Toggle("Exact location (live map)", () => config.ShareLocation, v => config.ShareLocation = v,
             "Your position on the zone map, updated live, including housing ward / plot / apartment. Anyone on the site can find you in-game with this.");
         if (config.ShareLocation)

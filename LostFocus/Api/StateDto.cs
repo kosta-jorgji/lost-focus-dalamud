@@ -13,6 +13,51 @@ public sealed class PrivacyDto
     [JsonPropertyName("pvp")] public bool Pvp { get; set; }
     [JsonPropertyName("emotes")] public bool Emotes { get; set; }
     [JsonPropertyName("location")] public bool Location { get; set; }
+    [JsonPropertyName("jobTime")] public bool JobTime { get; set; }
+    [JsonPropertyName("mountTime")] public bool MountTime { get; set; }
+}
+
+public sealed class JobTimeDto
+{
+    [JsonPropertyName("job")] public string Job { get; set; } = "";
+    [JsonPropertyName("seconds")] public double Seconds { get; set; }
+    [JsonPropertyName("longestStintSeconds")] public double LongestStintSeconds { get; set; }
+}
+
+public sealed class MountTimeDto
+{
+    [JsonPropertyName("id")] public uint Id { get; set; }
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+    [JsonPropertyName("seconds")] public double Seconds { get; set; }
+    [JsonPropertyName("rides")] public int Rides { get; set; }
+    [JsonPropertyName("longestRideSeconds")] public double LongestRideSeconds { get; set; }
+}
+
+public sealed class CurrentJobDto
+{
+    [JsonPropertyName("job")] public string Job { get; set; } = "";
+    [JsonPropertyName("seconds")] public double Seconds { get; set; }
+    [JsonPropertyName("running")] public bool Running { get; set; }
+}
+
+public sealed class CurrentMountDto
+{
+    [JsonPropertyName("id")] public uint Id { get; set; }
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+    [JsonPropertyName("seconds")] public double Seconds { get; set; }
+    [JsonPropertyName("running")] public bool Running { get; set; }
+}
+
+public sealed class JobActivityDto
+{
+    [JsonPropertyName("totals")] public List<JobTimeDto> Totals { get; set; } = new();
+    [JsonPropertyName("current")] public CurrentJobDto? Current { get; set; }
+}
+
+public sealed class MountActivityDto
+{
+    [JsonPropertyName("totals")] public List<MountTimeDto> Totals { get; set; } = new();
+    [JsonPropertyName("current")] public CurrentMountDto? Current { get; set; }
 }
 
 /// Where he is on the zone map. Sent on its own interval, only when the shown coordinates change.
@@ -55,6 +100,8 @@ public sealed class PvpProfileDto
 
 public sealed class SnapshotDto
 {
+    [JsonPropertyName("jobActivity")] public JobActivityDto? JobActivity { get; set; }
+    [JsonPropertyName("mountActivity")] public MountActivityDto? MountActivity { get; set; }
     [JsonPropertyName("online")] public bool Online { get; set; }
     [JsonPropertyName("characterName")] public string CharacterName { get; set; } = "";
     [JsonPropertyName("job")] public string Job { get; set; } = "";

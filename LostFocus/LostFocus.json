@@ -2,7 +2,7 @@
   "Name": "Lost Focus Tracker",
   "Author": "kosta",
   "Punchline": "Reports your in-game activity to the Lost Focus website.",
-  "Description": "Sends online status, playtime, zone/duty, deaths, floor time, wipes, job/gear, PvP record and emote counts to the Lost Focus meme site. Every category can be turned off in /lostfocus.",
+  "Description": "Sends online status, playtime, zone/duty, deaths, floor time, wipes, job/gear, PvP record, emote counts, and cumulative job and mount timers to the Lost Focus meme site. Every category can be turned off in /lostfocus.",
   "InternalName": "LostFocus",
   "RepoUrl": "https://github.com/kosta-jorgji/lost-focus-dalamud",
   "ApplicableVersion": "any",
