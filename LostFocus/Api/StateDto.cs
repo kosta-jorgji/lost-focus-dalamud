@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-// Keep in sync with backend/src/types.ts and frontend/src/lib/live.ts in the site repo (kosta-jorgji/lost-focus)
 namespace LostFocus.Api;
 
 public sealed class PrivacyDto
@@ -60,14 +59,14 @@ public sealed class MountActivityDto
     [JsonPropertyName("current")] public CurrentMountDto? Current { get; set; }
 }
 
-/// Where he is on the zone map. Sent on its own interval, only when the shown coordinates change.
+/// Player position on the zone map.
 public sealed class LocationDto
 {
     [JsonPropertyName("zone")] public string Zone { get; set; } = "";
     [JsonPropertyName("subArea")] public string? SubArea { get; set; }
-    /// In a housing district: "Ward 12 · Plot 34 · inside", "Ward 5 (subdivision) · Apartment 17".
+    /// Housing address, e.g. "Ward 12 · Plot 34 · inside" or "Ward 5 (subdivision) · Apartment 17".
     [JsonPropertyName("housing")] public string? Housing { get; set; }
-    /// Map texture path, e.g. "s1t2/01"; the site loads the map image from it.
+    /// Map texture path, e.g. "s1t2/01".
     [JsonPropertyName("mapPath")] public string? MapPath { get; set; }
     /// In-game map coordinates, as shown on the map (X 11.0, Y 11.4).
     [JsonPropertyName("x")] public double? X { get; set; }

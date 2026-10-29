@@ -11,10 +11,8 @@ using Map = Lumina.Excel.Sheets.Map;
 namespace LostFocus.Tracking;
 
 /// <summary>
-/// Live map position, on its own interval (config.LocationSeconds). Reading it is just a
-/// position + a couple of sheet lookups, and it's only sent when the coordinates shown on the
-/// in-game map change, so standing still (or AFK) costs nothing. In housing districts it also
-/// sends the ward / plot / apartment.
+/// Sends the player's map position every config.LocationSeconds, only when the shown
+/// coordinates change. Includes the ward / plot / apartment in housing districts.
 /// </summary>
 public sealed unsafe class LocationTracker
 {
@@ -54,7 +52,7 @@ public sealed unsafe class LocationTracker
         lastSent = loc;
     }
 
-    /// Forget what was sent so the next tick sends again (after logout, or when switched back on).
+    /// Forgets the last sent location so the next tick sends again.
     public void Reset()
     {
         lastSent = null;
@@ -113,7 +111,7 @@ public sealed unsafe class LocationTracker
         return string.Join(" · ", parts);
     }
 
-    /// Same place as far as the site can tell: same map and the same one-decimal coordinates.
+    /// Same map and the same one-decimal coordinates.
     private static bool Same(LocationDto a, LocationDto b) =>
         a.Zone == b.Zone && a.SubArea == b.SubArea && a.Housing == b.Housing && a.MapPath == b.MapPath && a.X == b.X && a.Y == b.Y;
 }

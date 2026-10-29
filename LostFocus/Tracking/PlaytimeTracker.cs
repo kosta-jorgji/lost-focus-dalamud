@@ -12,9 +12,8 @@ using LostFocus.Api;
 namespace LostFocus.Tracking;
 
 /// <summary>
-/// His real total playtime, from the game's own /playtime. Asked once per login, a few seconds
-/// after he's in (the reply that triggers is kept out of his chat), and also picked up whenever
-/// he types /playtime himself. The backend adds tracked session time on top until the next reading.
+/// Reads total playtime from the game's /playtime. Asks once per login with the reply hidden
+/// from chat, and also records the reply whenever the player runs /playtime.
 /// </summary>
 public sealed unsafe class PlaytimeTracker : IDisposable
 {
@@ -57,8 +56,7 @@ public sealed unsafe class PlaytimeTracker : IDisposable
         clientState.Logout += OnLogout;
     }
 
-    /// Called every framework tick. Waits until he's been in the world, out of loading screens
-    /// and cutscenes, for a few seconds before asking.
+    /// Asks once the player has been in the world, outside loading screens and cutscenes, for AskAfter.
     public void Tick()
     {
         if (asked || !config.SharePlaytime) return;
@@ -107,7 +105,7 @@ public sealed unsafe class PlaytimeTracker : IDisposable
 
     private void OnChatMessage(IHandleableChatMessage message)
     {
-        // Every chat line comes through here; only system lines can be it, so don't decode the rest.
+        // Only system messages can be the playtime line; skip decoding the rest.
         if (message.LogKind != XivChatType.SystemMessage) return;
         if (DateTime.UtcNow - lastReading < TimeSpan.FromSeconds(5)) return; // the log message already had it
         var match = PlaytimeLine.Match(message.Message.TextValue);

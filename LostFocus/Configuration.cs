@@ -14,20 +14,20 @@ public class Configuration : IPluginConfiguration
     public string ServerUrl { get; set; } = "";
     public string Secret { get; set; } = "";
 
-    // Privacy toggles. Everything he turns off is never sent - not just hidden.
+    // Privacy toggles. Disabled categories are never read or sent.
     public bool SharePlaytime { get; set; } = true;
     public bool ShareZone { get; set; } = true;
     public bool ShareDeaths { get; set; } = true;
     public bool ShareGear { get; set; } = true;
     public bool SharePvp { get; set; } = true;
     public bool ShareEmotes { get; set; } = true;
-    // Off by default: this lets anyone on the site find him in-game.
+    // Off by default: exposes the player's exact position.
     public bool ShareLocation { get; set; } = false;
     public int LocationSeconds { get; set; } = 5;
 
     public bool ShareJobTime { get; set; } = true;
     public bool ShareMountTime { get; set; } = true;
-    // Cumulative readings survive reloads and can be resent safely after a missed heartbeat.
+    // Cumulative totals, persisted across reloads.
     public Dictionary<string, JobTimeDto> JobTimes { get; set; } = new();
     public Dictionary<uint, MountTimeDto> MountTimes { get; set; } = new();
 

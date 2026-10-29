@@ -48,7 +48,7 @@ public sealed class GameStateReader
 
         snap.CharacterName = player.Name.TextValue;
 
-        // Anything turned off is simply never read, so it can't leak.
+        // Disabled categories are never read.
         if (config.ShareGear)
         {
             snap.Job = player.ClassJob.ValueNullable?.Abbreviation.ExtractText() ?? "";

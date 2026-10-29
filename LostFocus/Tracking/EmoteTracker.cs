@@ -8,9 +8,8 @@ using LostFocus.Api;
 namespace LostFocus.Tracking;
 
 /// <summary>
-/// Counts the emotes he uses. Hooks the local player's emote entry point, so text
-/// commands, the emote window and hotbars all land here. Counts are batched and
-/// sent at most once per heartbeat so /dance spam doesn't turn into request spam.
+/// Counts the local player's emotes by hooking EmoteManager.ExecuteEmote, which covers
+/// text commands, the emote window and hotbars. Counts are sent at most once per heartbeat.
 /// </summary>
 public sealed unsafe class EmoteTracker : IDisposable
 {
@@ -39,7 +38,7 @@ public sealed unsafe class EmoteTracker : IDisposable
         }
         catch (Exception ex)
         {
-            // A game patch moved it; everything else keeps working.
+            // Likely moved by a game patch; the rest of the plugin keeps working.
             log.Error(ex, "[emotes] failed to hook ExecuteEmote, emote tracking disabled");
         }
     }
@@ -62,7 +61,7 @@ public sealed unsafe class EmoteTracker : IDisposable
         return ok;
     }
 
-    /// Called every framework tick.
+    /// Flushes once per heartbeat interval.
     public void Tick()
     {
         if (DateTime.UtcNow - lastFlush >= TimeSpan.FromSeconds(Plugin.HeartbeatSeconds)) Flush();

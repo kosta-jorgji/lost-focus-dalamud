@@ -11,9 +11,8 @@ using Dalamud.Plugin.Services;
 namespace LostFocus.Api;
 
 /// <summary>
-/// Fire-and-forget HTTP to the backend. Requests are queued and sent on a
-/// background task so nothing blocks the game thread; failures are logged and
-/// dropped (a missed heartbeat is not worth retrying).
+/// Queues POSTs to the server and sends them on a background task.
+/// Failures are logged and dropped, not retried.
 /// </summary>
 public sealed class ApiClient : IDisposable
 {
@@ -42,8 +41,7 @@ public sealed class ApiClient : IDisposable
     public void SendHeartbeat(SnapshotDto snapshot) => Enqueue("/plugin/heartbeat", snapshot);
     public void SendEvent(EventDto ev) => Enqueue("/plugin/event", ev);
 
-    // Location can update every second. Only the newest one matters, so there's a single slot:
-    // at most one location request is ever queued and it sends whatever is latest when its turn comes.
+    // At most one location request is queued; it sends the latest location when dequeued.
     private const string LocationPath = "/plugin/location";
     private static readonly object LocationMarker = new();
     private LocationDto? latestLocation;
@@ -111,8 +109,7 @@ public sealed class ApiClient : IDisposable
 
     public void Dispose()
     {
-        // Let whatever is queued (last emote batch, offline heartbeat) go out, but don't hold up
-        // the unload for more than 2s if the server is slow; then cancel the rest.
+        // Give queued requests up to 2s to send, then cancel the rest.
         queue.CompleteAdding();
         try { worker.Wait(TimeSpan.FromSeconds(2)); } catch { /* shutting down */ }
         cts.Cancel();

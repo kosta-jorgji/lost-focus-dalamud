@@ -7,8 +7,7 @@ using LostFocus.Api;
 namespace LostFocus.Tracking;
 
 /// <summary>
-/// Watches for the discrete things the site cares about (deaths, wipes, pulls,
-/// login/logout, Frontline results) and hands them to the API client.
+/// Sends events for deaths, revives, wipes, pulls, duty completion, login/logout and PvP results.
 /// </summary>
 public sealed class EventTracker : IDisposable
 {
@@ -47,8 +46,7 @@ public sealed class EventTracker : IDisposable
         dutyState.DutyCompleted += OnDutyCompleted;
     }
 
-    /// Called every framework tick. Death and revive are the IsDead edges on the local player.
-    /// The player is briefly null during loading screens; that doesn't end a nap.
+    /// Detects death and revive from the local player's IsDead edges. Skipped while the player is null.
     public void Tick()
     {
         var player = objects.LocalPlayer;
@@ -66,7 +64,7 @@ public sealed class EventTracker : IDisposable
         }
     }
 
-    /// Floor time: how long he stayed dead before a raise, a release or the wipe reset.
+    /// Sends how long the player stayed dead.
     private void OnRevive()
     {
         var seconds = (int)(DateTime.UtcNow - deadSince!.Value).TotalSeconds;
@@ -93,7 +91,7 @@ public sealed class EventTracker : IDisposable
     private void OnLogout(int type, int code)
     {
         PullNumber = 0;
-        // Logging out while dead ends the nap, otherwise the next login would count the offline hours.
+        // End a death on logout so offline time isn't counted.
         if (deadSince != null) OnRevive();
         if (config.SharePlaytime) Emit("logout");
     }
@@ -102,7 +100,7 @@ public sealed class EventTracker : IDisposable
     {
         PullNumber = 0;
 
-        // Frontline / CC results: diff the PvP profile between entering and leaving a PvP zone.
+        // PvP results: diff the PvP profile between entering and leaving a PvP zone.
         var nowPvp = reader.IsPvpTerritory(territory);
         if (nowPvp && !inPvpTerritory)
         {

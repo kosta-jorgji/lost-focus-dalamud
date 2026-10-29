@@ -5,10 +5,10 @@ using LostFocus.Api;
 
 namespace LostFocus.Tracking;
 
-/// <summary>Accumulates observed online time. Loading pauses a job streak/ride without starting another.</summary>
+/// <summary>Accumulates observed time per job and mount. Loading pauses a streak/ride without starting another.</summary>
 public sealed class ActivityTimers
 {
-    /// Crafters and gatherers aren't timed. Same list the site uses to hide his whereabouts.
+    /// Crafters and gatherers aren't timed.
     private static readonly HashSet<string> DohDol = new() { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL", "MIN", "BTN", "FSH" };
 
     private readonly Dictionary<string, JobTimeDto> jobs;
@@ -26,12 +26,12 @@ public sealed class ActivityTimers
         foreach (var job in DohDol) jobs.Remove(job);
     }
 
-    /// Returns true on a job change, mount/dismount or pause/resume, so the site updates immediately.
+    /// Returns true on a job change, mount/dismount or pause/resume.
     public bool Update(double elapsed, bool available, string? job, uint mountId, string? mountName, bool shareJobs, bool shareMounts)
     {
-        // Unnamed rows are quest/duty vehicles, not his mounts: treat them as being on foot.
+        // Unnamed rows are quest/duty vehicles: treat them as being on foot.
         if (string.IsNullOrEmpty(mountName)) mountId = 0;
-        // A long framework stall/suspended computer is unobserved time, not a giant ride.
+        // Long gaps (framework stall, suspended machine) are unobserved time.
         if (running && available && elapsed >= 0 && elapsed <= 5)
         {
             if (shareJobs && currentJob != null)
@@ -92,7 +92,7 @@ public sealed class ActivityTimers
         running = false;
     }
 
-    // Copies matter: the HTTP worker serializes these later while the game keeps updating totals.
+    // Copies, so queued payloads aren't changed by later updates.
     public JobActivityDto ReadJobs() => new()
     {
         Totals = jobs.Values.Select(r => new JobTimeDto { Job = r.Job, Seconds = r.Seconds, LongestStintSeconds = r.LongestStintSeconds }).ToList(),

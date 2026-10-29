@@ -26,8 +26,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string Command = "/lostfocus";
 
-    /// How often the game state is read and sent (and emote counts flushed). Fixed and slow on
-    /// purpose: reading gear / PvP / sheets is the only non-trivial work this plugin does per tick.
+    /// Interval between heartbeats and emote flushes.
     public const int HeartbeatSeconds = 30;
 
     private readonly Configuration config;
@@ -83,7 +82,7 @@ public sealed class Plugin : IDalamudPlugin
         SendHeartbeat(force: activityChanged);
     }
 
-    /// "Send now" / a privacy toggle changed: full snapshot, and the location again if it's on.
+    /// Sends a full snapshot immediately and resends the location.
     private void SendNow()
     {
         location.Reset();
@@ -96,13 +95,11 @@ public sealed class Plugin : IDalamudPlugin
         var now = DateTime.UtcNow;
         if (!force && now - lastHeartbeat < TimeSpan.FromSeconds(HeartbeatSeconds)) return;
 
-        // Only while he's actually in the game. Title screen / character select: logout already told
-        // the site he's offline. Loading screen: there's no player object, so every field would read
-        // as empty and the site would flash offline; keep the last snapshot until he's back.
+        // Logged out: GoOffline already reported it.
         if (!ClientState.IsLoggedIn) return;
         if (Objects.LocalPlayer == null)
         {
-            // Keep the normal game state through loading, but tell activity timers to pause.
+            // Loading screen: nothing to read, so resend the last snapshot with the activity timers paused.
             if (force && lastSnapshot != null)
             {
                 var loading = new SnapshotDto
@@ -133,8 +130,7 @@ public sealed class Plugin : IDalamudPlugin
 
     private void OnLogout(int type, int code) => GoOffline();
 
-    /// Explicit offline snapshot so the site flips to offline immediately instead of waiting out the
-    /// backend's stale timeout (~2.5 min). Used on logout, when tracking is switched off, and on unload.
+    /// Stops the timers, flushes emotes and sends an offline snapshot.
     private void GoOffline()
     {
         if (!api.IsConfigured) { activity.Stop(); return; }
@@ -144,7 +140,7 @@ public sealed class Plugin : IDalamudPlugin
         var snapshot = new SnapshotDto { Online = false, Privacy = reader.Privacy() };
         activity.Fill(snapshot);
         api.SendHeartbeat(snapshot);
-        // Send a full snapshot (and location) as soon as he's back, not up to a heartbeat later.
+        // Send a full snapshot and location on the next tick after login.
         lastHeartbeat = DateTime.MinValue;
         location.Reset();
         lastSnapshot = null;
@@ -159,7 +155,7 @@ public sealed class Plugin : IDalamudPlugin
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfig;
         PluginInterface.UiBuilder.OpenMainUi -= ToggleConfig;
         windows.RemoveAllWindows();
-        GoOffline(); // plugin disabled/updated or game closing; ApiClient.Dispose gives it up to 2s to go out
+        GoOffline(); // ApiClient.Dispose gives it up to 2s to send
         playtime.Dispose();
         emotes.Dispose();
         events.Dispose();

@@ -31,7 +31,7 @@ public sealed class ActivityTracker
         var player = objects.LocalPlayer;
         var available = clientState.IsLoggedIn && player != null
             && !condition[ConditionFlag.BetweenAreas] && !condition[ConditionFlag.BetweenAreas51];
-        // Only read opted-in categories. CurrentMount is Dalamud's supported mount row accessor.
+        // Only read opted-in categories.
         var job = available && config.ShareJobTime ? player!.ClassJob.ValueNullable?.Abbreviation.ExtractText() : null;
         var mount = available && config.ShareMountTime ? player!.CurrentMount : null;
         var changed = timers.Update(elapsed, available, job, mount?.RowId ?? 0,

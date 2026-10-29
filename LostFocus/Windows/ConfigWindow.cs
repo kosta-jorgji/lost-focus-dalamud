@@ -31,7 +31,7 @@ public sealed class ConfigWindow : Window
         var enabled = config.Enabled;
         if (ImGui.Checkbox("Enabled", ref enabled))
         {
-            // Switching off: tell the site while still allowed to send. Switching on: don't wait a minute.
+            // Go offline while sending is still allowed; send immediately when enabling.
             if (!enabled) goOffline();
             config.Enabled = enabled;
             if (enabled) sendNow();
@@ -86,7 +86,7 @@ public sealed class ConfigWindow : Window
             ImGui.Unindent();
         }
 
-        // Don't make him wait for the next heartbeat for the site to drop something he just turned off.
+        // Send immediately so a disabled category is dropped without waiting for the next heartbeat.
         if (privacy)
         {
             dirty = true;
